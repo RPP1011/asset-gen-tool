@@ -2,71 +2,8 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project]
-name = "asset-gen-tool"
-version = "0.1.0"
-description = "Arcade AssetGen backend: FastAPI + Pydantic + Firestore multi-tenant API"
-readme = "README.md"
-requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [
-  { name = "Arcade AssetGen Team", email = "dev@example.com" }
-]
-keywords = ["fastapi", "firestore", "pydantic", "ai", "asset-generation", "multitenant"]
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "License :: OSI Approved :: MIT License",
-  "Framework :: AsyncIO",
-  "Framework :: FastAPI",
-  "Topic :: Internet :: WWW/HTTP",
-]
-
-# Runtime dependencies
-dependencies = [
-  # Web framework
-  "fastapi>=0.95.0",
-
-  # ASGI server for local development; Vercel uses its own build/runtime,
-  # but keeping uvicorn as a dev/start helper is convenient.
-  "uvicorn>=0.30.0",
-
-  # Pydantic v1 for compatibility with FastAPI (avoid Pydantic v2 unless you
-  # migrate FastAPI & models)
-  "pydantic>=1.10.7,<2.0.0",
-
-  # Dotenv for local environment loading
-  "python-dotenv>=0.21.0",
-
-  # Firestore client + storage for image uploads (if used)
-  "google-cloud-firestore>=2.9.0",
-  "google-cloud-storage>=2.7.0",
-  # Firebase Admin SDK for auth and advanced Firebase integrations
-  "firebase-admin>=6.0.0",
-
-  # OpenAI official python client (newer SDK). Pin to a broad minimum.
-  "openai>=1.0.0",
-
-  # Helpful typing backports for older Python versions (if needed)
-  "typing-extensions>=4.4.0",
-
-  # HTTP client for tests and optional service calls
-  "httpx>=0.24.0",
-]
-
-[project.optional-dependencies]
-# dev dependencies for formatting, linting, testing, CI helpers
-dev = [
-  "black==23.9.1",
-  "isort==5.12.0",
-  "ruff==0.4.5",
-  "mypy==1.7.0",
-  "pytest>=7.2.0",
-  "pytest-asyncio>=0.21.0",
-  "pytest-mock>=3.10.0",
-  "httpx>=0.24.0",
-  "pre-commit>=3.4.0",
-]
+# Runtime dependencies are tracked in requirements.txt to avoid Vercel treating
+# the project root as an editable install during builds.
 
 [tool.setuptools]
 # If you later convert this into an installable package, configure packages discovery here.
