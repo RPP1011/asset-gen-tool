@@ -356,6 +356,10 @@ class FirestoreAccessor:
         doc_ref = self._projects_col(org_id).document(project_id)
         self._update_doc(doc_ref, updates)
 
+    def delete_project(self, org_id: str, project_id: str) -> None:
+        doc_ref = self._projects_col(org_id).document(project_id)
+        self._delete_doc(doc_ref)
+
     # -------------------------
     # Asset helpers
     # -------------------------
@@ -508,6 +512,14 @@ class FirestoreAccessor:
         )
         self._update_doc(doc_ref, updates)
 
+    def delete_generation(
+        self, org_id: str, project_id: str, asset_id: str, generation_id: str
+    ) -> None:
+        doc_ref = self._generations_col(org_id, project_id, asset_id).document(
+            generation_id
+        )
+        self._delete_doc(doc_ref)
+
     # -------------------------
     # Variant helpers
     # -------------------------
@@ -584,6 +596,33 @@ class FirestoreAccessor:
             for variant in self._query_to_models(snaps, Variant)
         ]
 
+    def update_variant(
+        self,
+        org_id: str,
+        project_id: str,
+        asset_id: str,
+        generation_id: str,
+        variant_id: str,
+        updates: Dict[str, Any],
+    ) -> None:
+        doc_ref = self._variants_col(
+            org_id, project_id, asset_id, generation_id
+        ).document(variant_id)
+        self._update_doc(doc_ref, updates)
+
+    def delete_variant(
+        self,
+        org_id: str,
+        project_id: str,
+        asset_id: str,
+        generation_id: str,
+        variant_id: str,
+    ) -> None:
+        doc_ref = self._variants_col(
+            org_id, project_id, asset_id, generation_id
+        ).document(variant_id)
+        self._delete_doc(doc_ref)
+
     # -------------------------
     # Theme helpers
     # -------------------------
@@ -603,6 +642,15 @@ class FirestoreAccessor:
             raise FirestoreError("Failed to read back created theme.")
         return self._attach_metadata(created, org_id=org_id, project_id=project_id)
 
+    def get_theme(
+        self, org_id: str, project_id: str, theme_id: str
+    ) -> Optional[Theme]:
+        doc_ref = self._themes_col(org_id, project_id).document(theme_id)
+        theme = self._get_doc(doc_ref, Theme)
+        if theme:
+            return self._attach_metadata(theme, org_id=org_id, project_id=project_id)
+        return None
+
     def list_themes(self, org_id: str, project_id: str) -> List[Theme]:
         col = self._themes_col(org_id, project_id)
         try:
@@ -613,6 +661,20 @@ class FirestoreAccessor:
             self._attach_metadata(theme, org_id=org_id, project_id=project_id)
             for theme in self._query_to_models(snaps, Theme)
         ]
+
+    def update_theme(
+        self,
+        org_id: str,
+        project_id: str,
+        theme_id: str,
+        updates: Dict[str, Any],
+    ) -> None:
+        doc_ref = self._themes_col(org_id, project_id).document(theme_id)
+        self._update_doc(doc_ref, updates)
+
+    def delete_theme(self, org_id: str, project_id: str, theme_id: str) -> None:
+        doc_ref = self._themes_col(org_id, project_id).document(theme_id)
+        self._delete_doc(doc_ref)
 
     # -------------------------
     # ConceptImage helpers
@@ -639,6 +701,17 @@ class FirestoreAccessor:
             raise FirestoreError("Failed to read back created concept image.")
         return self._attach_metadata(created, org_id=org_id, project_id=project_id)
 
+    def get_concept_image(
+        self, org_id: str, project_id: str, image_id: str
+    ) -> Optional[ConceptImage]:
+        doc_ref = self._concept_images_col(org_id, project_id).document(image_id)
+        concept_image = self._get_doc(doc_ref, ConceptImage)
+        if concept_image:
+            return self._attach_metadata(
+                concept_image, org_id=org_id, project_id=project_id
+            )
+        return None
+
     def list_concept_images(
         self, org_id: str, project_id: str, tag: Optional[str] = None
     ) -> List[ConceptImage]:
@@ -654,6 +727,22 @@ class FirestoreAccessor:
             self._attach_metadata(ci, org_id=org_id, project_id=project_id)
             for ci in self._query_to_models(snaps, ConceptImage)
         ]
+
+    def update_concept_image(
+        self,
+        org_id: str,
+        project_id: str,
+        image_id: str,
+        updates: Dict[str, Any],
+    ) -> None:
+        doc_ref = self._concept_images_col(org_id, project_id).document(image_id)
+        self._update_doc(doc_ref, updates)
+
+    def delete_concept_image(
+        self, org_id: str, project_id: str, image_id: str
+    ) -> None:
+        doc_ref = self._concept_images_col(org_id, project_id).document(image_id)
+        self._delete_doc(doc_ref)
 
     # -------------------------
     # User helpers
@@ -682,6 +771,14 @@ class FirestoreAccessor:
             raise FirestoreError(f"Error listing users: {ex}") from ex
         return self._query_to_models(snaps, User)
 
+    def update_user(self, user_id: str, updates: Dict[str, Any]) -> None:
+        doc_ref = self._users_col().document(user_id)
+        self._update_doc(doc_ref, updates)
+
+    def delete_user(self, user_id: str) -> None:
+        doc_ref = self._users_col().document(user_id)
+        self._delete_doc(doc_ref)
+
     # -------------------------
     # Convenience operations
     # -------------------------
@@ -699,34 +796,29 @@ class FirestoreAccessor:
         Returns AssetWithGenerations containing created asset and generation(s).
         """
 
-        def transaction_fn(transaction):
-            col = self._assets_col(org_id, project_id)
-            if asset_id:
-                asset_ref = col.document(asset_id)
-                transaction.set(asset_ref, self._model_to_dict(asset, include_id=False))
-            else:
-                # mimic add in transaction by creating a new ID first
-                asset_ref = col.document()
-                transaction.set(asset_ref, self._model_to_dict(asset, include_id=False))
+        col = self._assets_col(org_id, project_id)
+        batch = self.client.batch()
+        if asset_id:
+            asset_ref = col.document(asset_id)
+        else:
+            asset_ref = col.document()
+        batch.set(asset_ref, self._model_to_dict(asset, include_id=False))
 
-            gen_col = asset_ref.collection("generations")
-            gen_ref = (
-                gen_col.document(generation_id) if generation_id else gen_col.document()
-            )
-            transaction.set(gen_ref, self._model_to_dict(generation, include_id=False))
-            return asset_ref.id, gen_ref.id
+        gen_col = asset_ref.collection("generations")
+        gen_ref = (
+            gen_col.document(generation_id) if generation_id else gen_col.document()
+        )
+        batch.set(gen_ref, self._model_to_dict(generation, include_id=False))
 
         try:
-            asset_id_created, gen_id_created = self.client.transaction()(transaction_fn)
+            batch.commit()
         except Exception as ex:
             raise FirestoreError(
                 f"Transaction failed creating asset and generation: {ex}"
             ) from ex
 
-        asset_model = self.get_asset(org_id, project_id, asset_id_created)
-        gen_model = self.get_generation(
-            org_id, project_id, asset_id_created, gen_id_created
-        )
+        asset_model = self.get_asset(org_id, project_id, asset_ref.id)
+        gen_model = self.get_generation(org_id, project_id, asset_ref.id, gen_ref.id)
         if not asset_model or not gen_model:
             raise FirestoreError(
                 "Failed to fetch created asset or generation after transaction."

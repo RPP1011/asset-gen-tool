@@ -46,7 +46,7 @@ help:
 	@printf "  readme       Emit a short README with Python setup guidance (Vercel-friendly)\n"
 	@printf "  ci           Run CI checks (format check, lint, test)\n"
 	@printf "  clean        Remove virtualenv and temporary files\n\n"
-	@printf "Notes:\n  - Firestore tests run inside the emulator; use 'make fire' for a one-liner.\n"
+	@printf "Notes:\n  - Firestore tests run inside the emulator; use 'make test-firestore' for a one-liner.\n"
 
 # Create virtualenv and install runtime requirements (local only)
 init:
@@ -128,7 +128,7 @@ readme:
 	   make format
 	   make lint
 	6. Run Firestore-backed tests:
-	   make fire
+	   make test-firestore
 
 	Notes for Vercel deployment
 	- Vercel (and similar serverless hosts) will run a build step and install runtime dependencies.
