@@ -18,7 +18,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-11-jre-headless netcat
+          sudo apt-get install -y openjdk-11-jre-headless netcat-traditional
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
