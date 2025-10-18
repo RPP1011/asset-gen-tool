@@ -1,0 +1,78 @@
+name: Firestore Emulator Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-11-jre-headless netcat
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools@latest
+          firebase --version
+
+      - name: Start Firestore emulator
+        run: |
+          # Start the Firestore emulator in the background and log output to a file.
+          # Use a dedicated project id for emulator tests to avoid confusion.
+          nohup firebase emulators:start --only firestore --project demo-project --host 0.0.0.0 --port 8080 > firestore-emulator.log 2>&1 &
+          # Wait for the emulator to be ready (port 8080)
+          n=0
+          until nc -z localhost 8080 || [ $n -ge 60 ]; do
+            n=$((n+1))
+            echo "waiting for firestore emulator... $n"
+            sleep 1
+          done
+          if ! nc -z localhost 8080; then
+            echo "Firestore emulator failed to start; dumping log:"
+            tail -n +1 firestore-emulator.log
+            exit 1
+          fi
+        env:
+          # Ensure the CLI knows the default project for emulator output if needed
+          GCLOUD_PROJECT: demo-project
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Optional: dev dependencies for running tests
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Run tests against Firestore emulator
+        env:
+          FIRESTORE_EMULATOR_HOST: localhost:8080
+          FIRESTORE_PROJECT: demo-project
+        run: |
+          pytest -q
+
+      - name: Upload emulator log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firestore-emulator-log
+          path: firestore-emulator.log

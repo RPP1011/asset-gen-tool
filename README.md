@@ -33,6 +33,16 @@ To run the example locally you need to:
 7. `pip install -r requirements.txt` to install the required Python dependencies.
 8. `pnpm dev` to launch the development server.
 
+## Firestore Emulator & Pytest
+
+The backend integration tests expect a running Firestore instance. For local development you can rely on the Firebase Emulator:
+
+1. Ensure Python deps are installed (`make init` and optionally `make install-dev`).
+2. Start the emulator in a separate terminal with `npm run firebase:emulator` or `make firebase-emulator`. The command uses `npx firebase-tools` so no global install is required.
+3. In another terminal run the tests against the emulator with `make test-firestore` or `npm run test:firestore`. Both commands automatically set the required `FIRESTORE_EMULATOR_HOST` and prefer the local `.venv` Python if it exists (falling back to `python3`).
+
+When the emulator is not running the Firestore integration tests will be skipped.
+
 ## Learn More
 
 To learn more about the AI SDK or Next.js by Vercel, take a look at the following resources:

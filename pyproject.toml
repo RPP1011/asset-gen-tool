@@ -1,0 +1,122 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asset-gen-tool"
+version = "0.1.0"
+description = "Arcade AssetGen backend: FastAPI + Pydantic + Firestore multi-tenant API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Arcade AssetGen Team", email = "dev@example.com" }
+]
+keywords = ["fastapi", "firestore", "pydantic", "ai", "asset-generation", "multitenant"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Framework :: AsyncIO",
+  "Framework :: FastAPI",
+  "Topic :: Internet :: WWW/HTTP",
+]
+
+# Runtime dependencies
+dependencies = [
+  # Web framework
+  "fastapi>=0.95.0",
+
+  # ASGI server for local development; Vercel uses its own build/runtime,
+  # but keeping uvicorn as a dev/start helper is convenient.
+  "uvicorn>=0.30.0",
+
+  # Pydantic v1 for compatibility with FastAPI (avoid Pydantic v2 unless you
+  # migrate FastAPI & models)
+  "pydantic>=1.10.7,<2.0.0",
+
+  # Dotenv for local environment loading
+  "python-dotenv>=0.21.0",
+
+  # Firestore client + storage for image uploads (if used)
+  "google-cloud-firestore>=2.9.0",
+  "google-cloud-storage>=2.7.0",
+
+  # OpenAI official python client (newer SDK). Pin to a broad minimum.
+  "openai>=1.0.0",
+
+  # Helpful typing backports for older Python versions (if needed)
+  "typing-extensions>=4.4.0",
+
+  # HTTP client for tests and optional service calls
+  "httpx>=0.24.0",
+]
+
+[project.optional-dependencies]
+# dev dependencies for formatting, linting, testing, CI helpers
+dev = [
+  "black==23.9.1",
+  "isort==5.12.0",
+  "ruff==0.4.5",
+  "mypy==1.7.0",
+  "pytest>=7.2.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-mock>=3.10.0",
+  "httpx>=0.24.0",
+  "pre-commit>=3.4.0",
+]
+
+[tool.setuptools]
+# If you later convert this into an installable package, configure packages discovery here.
+packages = { find = {} }
+
+# Optional metadata for entry points (left empty; can be filled later)
+[tool.setuptools.entry-points]
+# e.g. "console_scripts" = ["assetgen=api.main:cli"]
+
+# Formatting / linting defaults to keep repository consistent.
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+include = '\.pyi?$'
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "C", "N", "I", "RUF"]
+
+[tool.mypy]
+python_version = 3.10
+warn_unused_configs = true
+ignore_missing_imports = true
+allow_redefinition = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.pre-commit]
+repos = [
+  { repo = "https://github.com/psf/black", rev = "23.9.1", hooks = [{ id = "black" }] },
+  { repo = "https://github.com/pycqa/isort", rev = "5.12.0", hooks = [{ id = "isort" }] },
+  { repo = "https://github.com/charliermarsh/ruff-pre-commit", rev = "v0.4.5", hooks = [{ id = "ruff" }] }
+]
+
+# Notes
+# - This pyproject.toml is intentionally conservative to avoid breaking typical
+#   deployment environments (including serverless platforms like Vercel).
+# - For local development, install dev dependencies into a virtualenv:
+#     python -m venv .venv
+#     .venv/bin/pip install -e ".[dev]"
+# - When deploying to Vercel or other platforms, ensure only runtime
+#   dependencies (the [project].dependencies) are installed by the platform.
+#
+# If you want, I can also generate:
+# - requirements.txt and requirements-dev.txt (pinned versions) derived from these dependencies
+# - a Makefile with common targets (install, lint, format, test)
+# - a README.md with setup & deployment notes
