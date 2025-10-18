@@ -13,7 +13,6 @@
 #   make format          # run code formatters (black, isort)
 #   make lint            # run linters (ruff, mypy)
 #   make test            # run pytest
-#   make run             # run uvicorn for local development (not for Vercel)
 #   make readme          # emit a short README (python-setup guidance) to stdout or to README-PY.md
 #
 # Note about Vercel:
@@ -30,11 +29,9 @@ ACTIVATE = . $(VENV)/bin/activate
 REQ = requirements.txt
 REQ_DEV = requirements-dev.txt
 
-UVICORN_MODULE = api.index:app
-
 .DEFAULT_GOAL := help
 
-.PHONY: help init install install-dev format lint test run freeze readme ci clean firebase-emulator test-firestore
+.PHONY: help init install install-dev format lint test freeze readme ci clean firebase-emulator test-firestore fire
 
 help:
 	@printf "Makefile targets for asset-gen-tool\n\n"
@@ -43,14 +40,13 @@ help:
 	@printf "  format       Run code formatters (black, isort)\n"
 	@printf "  lint         Run linters and static checks (ruff, mypy)\n"
 	@printf "  test         Run test suite (pytest)\n"
-	@printf "  run          Run local dev server (uvicorn) - DO NOT use in Vercel builds\n"
 	@printf "  firebase-emulator  Start the local Firestore emulator (requires firebase-tools)\n"
-	@printf "  test-firestore     Run pytest inside the Firestore emulator context\n"
+	@printf "  fire              Run pytest inside the Firestore emulator context (firestore emulator)\n"
 	@printf "  freeze       Produce a pinned requirements file (pip freeze > pinned-requirements.txt)\n"
 	@printf "  readme       Emit a short README with Python setup guidance (Vercel-friendly)\n"
 	@printf "  ci           Run CI checks (format check, lint, test)\n"
 	@printf "  clean        Remove virtualenv and temporary files\n\n"
-	@printf "Notes:\n  - Avoid running `make run` in CI or Vercel. This target is for local development only.\n"
+	@printf "Notes:\n  - Firestore tests run inside the emulator; use 'make fire' for a one-liner.\n"
 
 # Create virtualenv and install runtime requirements (local only)
 init:
@@ -109,13 +105,6 @@ test-firestore:
 		npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local "python3 -m pytest -q"; \
 	fi
 
-# Run local development server
-# WARNING: Do not use this in Vercel builds. Vercel provides its own deployment mechanism.
-run:
-	@echo "Starting local development server (uvicorn) - for local use only"
-	@echo "Press Ctrl+C to stop."
-	@$(VENV)/bin/uvicorn $(UVICORN_MODULE) --host 0.0.0.0 --port 8000 --reload
-
 # Freeze installed packages to a pinned file (developer convenience)
 freeze:
 	@echo "Freezing installed packages to pinned-requirements.txt"
@@ -125,40 +114,37 @@ freeze:
 # Emit a README snippet with Python setup guidance, careful about Vercel
 readme:
 	@printf "%s\n" "----- asset-gen-tool: Python Setup Guidance (Vercel-friendly) -----"
-	@cat << 'EOF'
-Quick local setup (recommended)
-1. Create a virtual environment:
-   python3 -m venv .venv
-2. Activate the virtual environment:
-   source .venv/bin/activate
-3. Install runtime dependencies:
-   pip install -r requirements.txt
-4. (Optional) Install dev tools:
-   pip install -r requirements-dev.txt
-5. Run formatters / linters:
-   make format
-   make lint
-6. Run the app locally (development only):
-   make run
-   - This runs uvicorn with hot-reload. Do NOT run this in a CI or Vercel build step.
+	@cat <<-'EOF'
+	Quick local setup (recommended)
+	1. Create a virtual environment:
+	   python3 -m venv .venv
+	2. Activate the virtual environment:
+	   source .venv/bin/activate
+	3. Install runtime dependencies:
+	   pip install -r requirements.txt
+	4. (Optional) Install dev tools:
+	   pip install -r requirements-dev.txt
+	5. Run formatters / linters:
+	   make format
+	   make lint
+	6. Run Firestore-backed tests:
+	   make fire
 
-Notes for Vercel deployment
-- Vercel (and similar serverless hosts) will run a build step and install runtime dependencies.
-  Keep these points in mind to avoid breaking Vercel:
-  * Vercel's Python runtime expects a requirements.txt (or pyproject with proper build backend).
-  * Do not rely on local virtualenv activation in the Vercel build; only runtime requirements listed
-    in requirements.txt should be installed by the platform.
-  * Do NOT run long-lived processes (like `uvicorn --reload`) in a build step. Use Vercel's server
-    handlers or target their Python deployment approach.
-  * Keep dev dependencies out of requirements.txt. Use requirements-dev.txt locally for tools.
-  * If you have a pinned requirements file for reproducible builds, include it as pinned-requirements.txt
-    and point your CI to use that instead.
+	Notes for Vercel deployment
+	- Vercel (and similar serverless hosts) will run a build step and install runtime dependencies.
+	  Keep these points in mind to avoid breaking Vercel:
+	  * Vercel's Python runtime expects a requirements.txt (or pyproject with proper build backend).
+	  * Do not rely on local virtualenv activation in the Vercel build; only runtime requirements listed
+	    in requirements.txt should be installed by the platform.
+	  * Keep dev dependencies out of requirements.txt. Use requirements-dev.txt locally for tools.
+	  * If you have a pinned requirements file for reproducible builds, include it as pinned-requirements.txt
+	    and point your CI to use that instead.
 
-Security & Credentials
-- For Firestore and GCP access, use GOOGLE_APPLICATION_CREDENTIALS or platform-provided credentials.
-- Never commit service account keys into the repository.
+	Security & Credentials
+	- For Firestore and GCP access, use GOOGLE_APPLICATION_CREDENTIALS or platform-provided credentials.
+	- Never commit service account keys into the repository.
 
-EOF
+	EOF
 	@printf "%s\n" "----- end guidance -----"
 
 # CI target: run checks (non-destructive)

@@ -1,0 +1,13 @@
+{
+  // Point Pyright at the in-repo virtual environment so it can resolve dependencies.
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.10",
+  "exclude": [
+    "**/__pycache__",
+    ".venv",
+    "node_modules",
+    "build",
+    "dist"
+  ]
+}

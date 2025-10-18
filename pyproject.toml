@@ -41,6 +41,8 @@ dependencies = [
   # Firestore client + storage for image uploads (if used)
   "google-cloud-firestore>=2.9.0",
   "google-cloud-storage>=2.7.0",
+  # Firebase Admin SDK for auth and advanced Firebase integrations
+  "firebase-admin>=6.0.0",
 
   # OpenAI official python client (newer SDK). Pin to a broad minimum.
   "openai>=1.0.0",
@@ -99,6 +101,11 @@ allow_redefinition = true
 minversion = "7.0"
 addopts = "-q"
 testpaths = ["tests"]
+filterwarnings = [
+  "ignore:Type google._upb._message.MessageMapContainer uses PyType_Spec:DeprecationWarning",
+  "ignore:Type google._upb._message.ScalarMapContainer uses PyType_Spec:DeprecationWarning",
+  "ignore:Failing to pass a value to the 'type_params'.*:DeprecationWarning",
+]
 
 [tool.pre-commit]
 repos = [

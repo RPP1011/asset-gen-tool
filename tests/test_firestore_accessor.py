@@ -74,6 +74,26 @@ def _random_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
 
 
+def test_minimal_organization_round_trip(accessor: FirestoreAccessor) -> None:
+    """
+    Smallest integration that touches Firestore: create/get/delete an organization doc.
+    """
+    org_id = _random_id("minimal")
+    org = models.Organization(name="Minimal Org")
+
+    created = accessor.create_organization(org, org_id=org_id)
+    assert created.id == org_id
+    assert created.name == "Minimal Org"
+
+    fetched = accessor.get_organization(org_id)
+    assert fetched is not None
+    assert fetched.id == org_id
+    assert fetched.name == "Minimal Org"
+
+    accessor.delete_organization(org_id)
+    assert accessor.get_organization(org_id) is None
+
+
 def test_integration_create_and_cleanup(
     accessor: FirestoreAccessor, firestore_client: firestore.Client
 ):

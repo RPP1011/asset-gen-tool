@@ -397,7 +397,9 @@ class FirestoreAccessor:
                     raise ValueError(
                         "Each where clause must be a 3-tuple: (field, op, value)"
                     )
-                q = q.where(clause[0], clause[1], clause[2])
+                q = q.where(
+                    filter=firestore.FieldFilter(clause[0], clause[1], clause[2])
+                )
         try:
             snaps = q.get()
         except Exception as ex:
@@ -643,7 +645,7 @@ class FirestoreAccessor:
         col = self._concept_images_col(org_id, project_id)
         q = col
         if tag:
-            q = q.where("tags", "array_contains", tag)
+            q = q.where(filter=firestore.FieldFilter("tags", "array_contains", tag))
         try:
             snaps = q.get()
         except Exception as ex:

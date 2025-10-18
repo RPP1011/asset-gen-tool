@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
+        "test": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || python3 -m pytest -q'\"",
         "fastapi-dev": "pip3 install -r requirements.txt && python3 -m uvicorn api.index:app --reload",
         "next-dev": "next dev",
         "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
