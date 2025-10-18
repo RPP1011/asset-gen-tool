@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install Firebase CLI
         run: |
@@ -34,7 +34,7 @@ jobs:
         run: |
           # Start the Firestore emulator in the background and log output to a file.
           # Use a dedicated project id for emulator tests to avoid confusion.
-          nohup firebase emulators:start --only firestore --project demo-project --host 0.0.0.0 --port 8080 > firestore-emulator.log 2>&1 &
+          nohup firebase emulators:start --only firestore --project demo-project > firestore-emulator.log 2>&1 &
           # Wait for the emulator to be ready (port 8080)
           n=0
           until nc -z localhost 8080 || [ $n -ge 60 ]; do
