@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "test": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || python3 -m pytest -q'\"",
-        "fastapi-dev": "pip3 install -r requirements.txt && python3 -m uvicorn api.index:app --reload",
+        "fastapi-dev": "python3 -m uvicorn api.index:app --reload",
         "next-dev": "next dev",
         "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
         "build": "next build",
@@ -42,7 +42,6 @@
         "tailwind-merge": "^2.5.4",
         "tailwindcss": "3.4.15",
         "tailwindcss-animate": "^1.0.7",
-        "types": "link:next-themes/dist/types",
         "typescript": "5.0.4",
         "usehooks-ts": "^3.1.0"
     }
