@@ -17,17 +17,14 @@
 #
 # Note about Vercel:
 # - Vercel builds should only install runtime dependencies. Do not call `make init` from a Vercel build
-#   step that also installs dev dependencies. Vercel will detect Python projects using requirements.txt
-#   or pyproject configuration. Keep dev-only steps out of the build pipeline.
+#   step that also installs dev dependencies. Vercel will detect Python projects through pyproject metadata.
+#   Keep dev-only steps out of the build pipeline.
 # - This Makefile provides guidance but does not modify Vercel behavior.
 
-PYTHON ?= python3
+PYTHON ?= python3.12
 VENV ?= .venv
 PIP = $(PYTHON) -m pip
 ACTIVATE = . $(VENV)/bin/activate
-
-REQ = requirements.txt
-REQ_DEV = requirements-dev.txt
 
 .DEFAULT_GOAL := help
 
@@ -53,18 +50,18 @@ init:
 	@echo "Creating virtual environment at $(VENV) (if missing) and installing runtime dependencies..."
 	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
 	@$(VENV)/bin/python -m pip install --upgrade pip wheel
-	@$(VENV)/bin/pip install -r $(REQ)
+	@$(VENV)/bin/pip install .
 	@echo "Done. Activate with: source $(VENV)/bin/activate"
 
 # Install runtime deps into the current environment (alternative to init)
 install:
 	@echo "Installing runtime requirements into current environment..."
-	@$(PIP) install -r $(REQ)
+	@$(PIP) install .
 
 # Install dev dependencies (local dev machines only)
 install-dev:
 	@echo "Installing development dependencies into the active environment (or virtualenv if activated)..."
-	@$(PIP) install -r $(REQ_DEV)
+	@$(PIP) install ".[dev]"
 	@echo "Dev dependencies installed."
 
 # Format code
@@ -102,7 +99,7 @@ test-firestore:
 	@if [ -x "$(VENV)/bin/python" ]; then \
 		npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local "$(VENV)/bin/python -m pytest -q"; \
 	else \
-		npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local "python3 -m pytest -q"; \
+		npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local "python3.12 -m pytest -q"; \
 	fi
 
 # Freeze installed packages to a pinned file (developer convenience)
@@ -116,14 +113,14 @@ readme:
 	@printf "%s\n" "----- asset-gen-tool: Python Setup Guidance (Vercel-friendly) -----"
 	@cat <<-'EOF'
 	Quick local setup (recommended)
-	1. Create a virtual environment:
-	   python3 -m venv .venv
+	1. Create a Python 3.12 virtual environment:
+	   python3.12 -m venv .venv
 	2. Activate the virtual environment:
 	   source .venv/bin/activate
-	3. Install runtime dependencies:
-	   pip install -r requirements.txt
+	3. Install runtime dependencies declared in pyproject.toml:
+	   pip install .
 	4. (Optional) Install dev tools:
-	   pip install -r requirements-dev.txt
+	   pip install ".[dev]"
 	5. Run formatters / linters:
 	   make format
 	   make lint
@@ -133,12 +130,10 @@ readme:
 	Notes for Vercel deployment
 	- Vercel (and similar serverless hosts) will run a build step and install runtime dependencies.
 	  Keep these points in mind to avoid breaking Vercel:
-	  * Vercel's Python runtime expects a requirements.txt (or pyproject with proper build backend).
-	  * Do not rely on local virtualenv activation in the Vercel build; only runtime requirements listed
-	    in requirements.txt should be installed by the platform.
-	  * Keep dev dependencies out of requirements.txt. Use requirements-dev.txt locally for tools.
-	  * If you have a pinned requirements file for reproducible builds, include it as pinned-requirements.txt
-	    and point your CI to use that instead.
+	  * This project declares runtime dependencies in pyproject.toml and installs via pip/uv.
+	  * Do not rely on local virtualenv activation in the Vercel build; only runtime dependencies
+	    declared in pyproject.toml will be installed by the platform.
+	  * Keep dev dependencies out of the runtime dependency list—use the "dev" optional extra locally.
 
 	Security & Credentials
 	- For Firestore and GCP access, use GOOGLE_APPLICATION_CREDENTIALS or platform-provided credentials.

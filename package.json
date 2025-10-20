@@ -3,15 +3,17 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "test": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || python3 -m pytest -q'\"",
-        "fastapi-dev": "python3 -m uvicorn api.index:app --reload",
+        "test": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || { command -v python3.12 >/dev/null 2>&1 && python3.12 -m pytest -q || python3 -m pytest -q; }'\"",
+        "fastapi-dev": "bash -lc 'PY_BIN=${PYTHON:-python3.12}; command -v \"$PY_BIN\" >/dev/null 2>&1 || PY_BIN=python3; \"$PY_BIN\" -m uvicorn api.index:app --reload'",
         "next-dev": "next dev",
         "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
         "build": "next build",
+        "vercel-build": "bash ./scripts/check-python-deps.sh && npm run build",
         "start": "next start",
         "lint": "next lint",
         "firebase:emulator": "npx --yes firebase-tools emulators:start --only firestore --project asset-gen-local",
-        "test:firestore": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || python3 -m pytest -q'\""
+        "test:firestore": "npx --yes firebase-tools emulators:exec --only firestore --project asset-gen-local \"bash -lc '[ -x .venv/bin/python ] && .venv/bin/python -m pytest -q || { command -v python3.12 >/dev/null 2>&1 && python3.12 -m pytest -q || python3 -m pytest -q; }'\"",
+        "openapi:generate": "bash -lc 'if [ -x .venv/bin/python ]; then PY_BIN=.venv/bin/python; else PY_BIN=${PYTHON:-python3.12}; command -v \"$PY_BIN\" >/dev/null 2>&1 || PY_BIN=python3; fi; \"$PY_BIN\" scripts/export_openapi.py' && openapi-typescript build/openapi.json --output types/generated/assetgen.ts"
     },
     "dependencies": {
         "@ai-sdk/ui-utils": "^0.0.20",
@@ -43,6 +45,10 @@
         "tailwindcss": "3.4.15",
         "tailwindcss-animate": "^1.0.7",
         "typescript": "5.0.4",
-        "usehooks-ts": "^3.1.0"
+        "usehooks-ts": "^3.1.0",
+        "openapi-fetch": "^0.8.2"
+    },
+    "devDependencies": {
+        "openapi-typescript": "^6.7.1"
     }
 }

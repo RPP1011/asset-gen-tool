@@ -4,69 +4,6 @@ from datetime import datetime
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
-# Python 3.13 changed ForwardRef._evaluate signature, breaking Pydantic 1.x.
-# Apply a lightweight compatibility shim before FastAPI (and transitively Pydantic) import.
-if sys.version_info >= (3, 13):  # pragma: no cover - version-specific glue
-    from typing import ForwardRef
-
-    if not getattr(ForwardRef._evaluate, "__assetgen_shim__", False):
-        _forward_ref_evaluate = ForwardRef._evaluate
-        _type_params_default = _forward_ref_evaluate.__defaults__[0]
-        _recursive_guard_missing = object()
-
-        def _pydantic_forward_ref_evaluate(
-            self,
-            globalns,
-            localns,
-            type_params=_type_params_default,
-            *,
-            recursive_guard=_recursive_guard_missing,
-        ):
-            if recursive_guard is _recursive_guard_missing:
-                recursive_guard = type_params
-                type_params = _type_params_default
-            if recursive_guard is None:
-                recursive_guard = set()
-            return _forward_ref_evaluate(
-                self,
-                globalns,
-                localns,
-                type_params,
-                recursive_guard=recursive_guard,
-            )
-
-        _pydantic_forward_ref_evaluate.__assetgen_shim__ = True  # type: ignore[attr-defined]
-        ForwardRef._evaluate = _pydantic_forward_ref_evaluate  # type: ignore[attr-defined]
-
-if sys.version_info >= (3, 14):  # pragma: no cover - version-specific glue
-    from inspect import Format
-
-    try:
-        import pydantic.main as _pydantic_main  # type: ignore[import-not-found]
-    except ModuleNotFoundError:
-        _pydantic_main = None  # type: ignore[assignment]
-
-    if _pydantic_main is not None:
-        _model_meta = _pydantic_main.ModelMetaclass
-        if not getattr(_model_meta.__new__, "__assetgen_shim__", False):
-            _orig_model_meta_new = _model_meta.__new__
-
-            def _assetgen_model_meta_new(mcs, name, bases, namespace, **kwargs):
-                if "__annotations__" not in namespace:
-                    annotate_func = namespace.get("__annotate_func__")
-                    if annotate_func is not None:
-                        try:
-                            annotations = dict(annotate_func(Format.VALUE))
-                        except Exception:
-                            annotations = {}
-                        if annotations:
-                            namespace = dict(namespace)
-                            namespace["__annotations__"] = annotations
-                return _orig_model_meta_new(mcs, name, bases, namespace, **kwargs)
-
-            _assetgen_model_meta_new.__assetgen_shim__ = True  # type: ignore[attr-defined]
-            _model_meta.__new__ = _assetgen_model_meta_new  # type: ignore[assignment]
-
 from dotenv import load_dotenv
 from fastapi import (
     APIRouter,

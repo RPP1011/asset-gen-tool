@@ -2,21 +2,68 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# Runtime dependencies are tracked in requirements.txt to avoid Vercel treating
-# the project root as an editable install during builds.
+[project]
+name = "asset-gen-tool"
+version = "0.1.0"
+description = "Asset generation tooling with a Next.js frontend and FastAPI backend."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "annotated-types==0.7.0",
+  "anyio==3.7.1",
+  "certifi==2024.7.4",
+  "charset-normalizer==3.4.0",
+  "click==8.1.7",
+  "distro==1.9.0",
+  "dnspython==2.6.1",
+  "email-validator==2.2.0",
+  "fastapi==0.103.2",
+  "fastapi-cli==0.0.4",
+  "google-cloud-firestore==2.16.0",
+  "google-cloud-storage==2.17.0",
+  "h11==0.14.0",
+  "httpcore==1.0.5",
+  "httpx==0.27.0",
+  "idna==3.7",
+  "jinja2==3.1.4",
+  "markdown-it-py==3.0.0",
+  "markupsafe==2.1.5",
+  "mdurl==0.1.2",
+  "openai==1.37.1",
+  "pydantic==2.7.4",
+  "pygments==2.18.0",
+  "python-dotenv==1.0.1",
+  "python-multipart==0.0.9",
+  "pyyaml==6.0.1",
+  "requests==2.32.3",
+  "rich==13.7.1",
+  "shellingham==1.5.4",
+  "sniffio==1.3.1",
+  "starlette==0.27.0",
+  "tqdm==4.66.4",
+  "typer==0.12.3",
+  "typing-extensions==4.12.2",
+  "urllib3==2.2.3",
+  "uvicorn==0.30.3",
+  "websockets==12.0",
+]
 
-[tool.setuptools]
-# If you later convert this into an installable package, configure packages discovery here.
-packages = { find = {} }
+[project.optional-dependencies]
+dev = [
+  "black==23.9.1",
+  "isort==5.12.0",
+  "mypy==1.8.0",
+  "pytest==8.2.2",
+  "ruff==0.4.5",
+]
 
-# Optional metadata for entry points (left empty; can be filled later)
-[tool.setuptools.entry-points]
-# e.g. "console_scripts" = ["assetgen=api.main:cli"]
+[tool.setuptools.packages.find]
+include = ["api", "api.*"]
 
 # Formatting / linting defaults to keep repository consistent.
 [tool.black]
 line-length = 88
-target-version = ["py310"]
+target-version = ["py312"]
 include = '\.pyi?$'
 skip-string-normalization = true
 
@@ -29,7 +76,7 @@ line-length = 88
 select = ["E", "F", "W", "C", "N", "I", "RUF"]
 
 [tool.mypy]
-python_version = 3.10
+python_version = 3.12
 warn_unused_configs = true
 ignore_missing_imports = true
 allow_redefinition = true
@@ -52,15 +99,8 @@ repos = [
 ]
 
 # Notes
-# - This pyproject.toml is intentionally conservative to avoid breaking typical
-#   deployment environments (including serverless platforms like Vercel).
-# - For local development, install dev dependencies into a virtualenv:
-#     python -m venv .venv
+# - Runtime dependencies live in [project].dependencies so platforms like Vercel can install the app via pip/uv.
+# - For local development, create a Python 3.12 virtualenv and install the package in editable mode:
+#     python3.12 -m venv .venv
 #     .venv/bin/pip install -e ".[dev]"
-# - When deploying to Vercel or other platforms, ensure only runtime
-#   dependencies (the [project].dependencies) are installed by the platform.
-#
-# If you want, I can also generate:
-# - requirements.txt and requirements-dev.txt (pinned versions) derived from these dependencies
-# - a Makefile with common targets (install, lint, format, test)
-# - a README.md with setup & deployment notes
+# - Keep dev-only tools in the optional "dev" extra to avoid bloating serverless deployments.

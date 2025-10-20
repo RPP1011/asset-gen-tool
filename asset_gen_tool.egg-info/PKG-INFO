@@ -1,3 +1,53 @@
+Metadata-Version: 2.4
+Name: asset-gen-tool
+Version: 0.1.0
+Summary: Asset generation tooling with a Next.js frontend and FastAPI backend.
+Requires-Python: <3.13,>=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: annotated-types==0.7.0
+Requires-Dist: anyio==3.7.1
+Requires-Dist: certifi==2024.7.4
+Requires-Dist: charset-normalizer==3.4.0
+Requires-Dist: click==8.1.7
+Requires-Dist: distro==1.9.0
+Requires-Dist: dnspython==2.6.1
+Requires-Dist: email-validator==2.2.0
+Requires-Dist: fastapi==0.103.2
+Requires-Dist: fastapi-cli==0.0.4
+Requires-Dist: google-cloud-firestore==2.16.0
+Requires-Dist: google-cloud-storage==2.17.0
+Requires-Dist: h11==0.14.0
+Requires-Dist: httpcore==1.0.5
+Requires-Dist: httpx==0.27.0
+Requires-Dist: idna==3.7
+Requires-Dist: jinja2==3.1.4
+Requires-Dist: markdown-it-py==3.0.0
+Requires-Dist: markupsafe==2.1.5
+Requires-Dist: mdurl==0.1.2
+Requires-Dist: openai==1.37.1
+Requires-Dist: pydantic==2.7.4
+Requires-Dist: pygments==2.18.0
+Requires-Dist: python-dotenv==1.0.1
+Requires-Dist: python-multipart==0.0.9
+Requires-Dist: pyyaml==6.0.1
+Requires-Dist: requests==2.32.3
+Requires-Dist: rich==13.7.1
+Requires-Dist: shellingham==1.5.4
+Requires-Dist: sniffio==1.3.1
+Requires-Dist: starlette==0.27.0
+Requires-Dist: tqdm==4.66.4
+Requires-Dist: typer==0.12.3
+Requires-Dist: typing-extensions==4.12.2
+Requires-Dist: urllib3==2.2.3
+Requires-Dist: uvicorn==0.30.3
+Requires-Dist: websockets==12.0
+Provides-Extra: dev
+Requires-Dist: black==23.9.1; extra == "dev"
+Requires-Dist: isort==5.12.0; extra == "dev"
+Requires-Dist: mypy==1.8.0; extra == "dev"
+Requires-Dist: pytest==8.2.2; extra == "dev"
+Requires-Dist: ruff==0.4.5; extra == "dev"
+
 # AI SDK Python Streaming Preview
 
 This template demonstrates the usage of [Data Stream Protocol](https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol#data-stream-protocol) to stream chat completions from a Python endpoint ([FastAPI](https://fastapi.tiangolo.com)) and display them using the [useChat](https://sdk.vercel.ai/docs/ai-sdk-ui/chatbot#chatbot) hook in your Next.js application.
