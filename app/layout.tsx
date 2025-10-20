@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
     title: "AssetGen",
@@ -44,10 +43,7 @@ export default function RootLayout({
                 suppressHydrationWarning
             >
                 <Toaster position="top-center" richColors />
-                <Navbar />
-                <main className="min-h-[calc(100vh-52px)] bg-background">
-                    {children}
-                </main>
+                <main className="min-h-screen bg-background">{children}</main>
             </body>
         </html>
     );
